@@ -1,51 +1,35 @@
-//Arduino Human Following Robot
-// Created By DIY Builder
-// You have to install the AFMotor and NewPing library Before Uploading the sketch
-// You can find all the required libraris from arduino library manager.
-// Contact me on instagram for any query(Insta Id : diy.builder)
-// Modified 7 Mar 2022
-// Version 1.1
-
-
-//include the library code:         
-
 #define TRIGGER_PIN 6         // Trigger pin connected to analog pin A1 of Arduino Uno:
 #define ECHO_PIN 5            // Echo pin connected to analog pin A0 of Arduino Uno:
 #define MAX_DISTANCE 200      // Maximum ping distance:
 
-unsigned int distance = 0;    //Variable to store ultrasonic sensor distance:
+unsigned int distance = 0;    // Variable to store ultrasonic sensor distance:
 unsigned int duration = 0;   
 
-int motorPin = 3;
-int speed;
-int flag;
+// motor pins
+int motorPin1 = 3;
+int motorPin2 = 9;
 
 void setup() { // the setup function runs only once when power on the board or reset the board:
   Serial.begin(9600); // initialize serial communication at 9600 bits per second:
-  pinMode(TRIGGER_PIN, OUTPUT);
-  pinMode(ECHO_PIN, INPUT);
-  pinMode(motorPin, OUTPUT); // set pin 3 as an OUTPUT
+  pinMode(TRIGGER_PIN, OUTPUT);   // ultrasonic sensor input pin
+  pinMode(ECHO_PIN, INPUT);       // ultrasonic sensor input pin
+  pinMode(motorPin1, OUTPUT);      // set pin 3 as an OUTPUT for the motor 1
+  pinMode(motorPin2, OUTPUT);      // set pin 9 as an OUTPUT for the motor 2
 }
 
-// the lope function runs forever
 void loop() {                             
   delay(150);                                       //wait 50ms between pings:
   long distance = calculateDistance();              // send ping, get distance in cm and store it in 'distance' variable:
   Serial.print(">>> distance ");                   
   Serial.println(distance);                         // print the distance in serial monitor:                
 
-  if((distance > 5) && (distance < 40)) {           //check wheather the ultrasonic sensor's value stays between 1 to 15.
-  //                                                // if the condition is 'true' then the statement below will execute:
-  //   //Move Forward:
-  //   Motor1.setSpeed(130);  //define motor1 speed:
-  //   Motor1.run(FORWARD);   //rotate motor1 clockwise:
-    
-  // }  else {
-  //   //Stop
-  analogWrite(motorPin, 200);
-  //   Motor1.run(RELEASE);   //stop motor1:
+  if((distance > 5) && (distance < 120)) {           //check wheather the ultrasonic sensor's value stays between 1 to 15.
+    //Serial.print("RUN!");
+    analogWrite(motorPin1, 200);
+    analogWrite(motorPin2, 200);
   } else {
-    analogWrite(motorPin, 0);    
+    analogWrite(motorPin1, 0); 
+    analogWrite(motorPin2, 0);   
   }
 }
 

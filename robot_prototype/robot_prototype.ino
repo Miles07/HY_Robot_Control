@@ -5,16 +5,26 @@
 unsigned int distance = 0;    // ultrasonic sensor distance
 unsigned int duration = 0;    // length of ultrasonic sensor pulse
 
+// ultra sonic sensor distance (in cm)
+int minDist = 25;
+int maxDist = 140;
+int slowDist = 60;
+
+// motor speed
+int fullSpeed = 400;
+int turnSpeed = 380;          
+int slowSpeed = 320;
+
 // motor pins
-int motorPinFL = 10;           // front left
-int motorPinFR = 6;          // front right
+int motorPinFL = 10;          // front left
+int motorPinFR = 6;           // front right
 int motorPinBL = 9;           // back left
 int motorPinBR = 5;           // back right
 
 // proximity sensor pins
-int proximityPinLeft = A0;
-int proximityPinRight = A1;
-int PROXIMITY_LIMIT = 980; // sensor value below limit -> object detected
+int proximityPinLeft = A1;
+int proximityPinRight = A0;
+int COLLISION_PROXIMITY = 850; // sensor value below limit -> object detected
 
 // control variables
 boolean targetDetected = false;
@@ -35,7 +45,7 @@ void setup() { // the setup function runs only once when power on the board or r
 }
 
 void loop() {                             
-  delay(150);
+  delay(150); // 150
   long distance = calculateDistance();              // send ping, get distance in cm and store it in 'distance' variable:
   long distLeft = analogRead(proximityPinLeft);
   long distRight = analogRead(proximityPinRight);
@@ -51,39 +61,46 @@ void loop() {
   Serial.println(); 
 
   // get target & obstacle conditions
-  targetDetected = (distance > 20) && (distance < 160);
-  leftObstacle = distLeft < PROXIMITY_LIMIT;
-  rightObstacle = distRight < PROXIMITY_LIMIT;
+  targetDetected = (distance > minDist) && (distance < maxDist);
+  leftObstacle = false; // distLeft < COLLISION_PROXIMITY; // if left sensor's distance is below distance --> True
+  rightObstacle = false; // distRight < COLLISION_PROXIMITY;
 
 
-  Serial.print(">>> TARGET: ");  
-  Serial.println(targetDetected);   
+  // Serial.print(">>> TARGET: ");  
+  // Serial.println(targetDetected);   
   
-  Serial.print(">>> LEFT: ");  
-  Serial.println(leftObstacle);   
+  // Serial.print(">>> LEFT COLLISION: ");  
+  // Serial.println(leftObstacle);   
   
-  Serial.print(">>> RIGHT: ");  
-  Serial.println(rightObstacle);   
-  Serial.println(); 
+  // Serial.print(">>> RIGHT: ");  
+  // Serial.println(rightObstacle);   
+  // Serial.println(); 
 
   if (targetDetected && !leftObstacle && !rightObstacle) {
     // no collision --> run all motors
-    analogWrite(motorPinFL, 300);
-    analogWrite(motorPinBL, 300);
-    analogWrite(motorPinFR, 300);
-    analogWrite(motorPinBR, 300);
+    if (distance < slowDist) {
+      analogWrite(motorPinFL, slowSpeed);
+      analogWrite(motorPinBL, slowSpeed);
+      analogWrite(motorPinFR, slowSpeed);
+      analogWrite(motorPinBR, slowSpeed);
+    } else {
+      analogWrite(motorPinFL, fullSpeed);
+      analogWrite(motorPinBL, fullSpeed);
+      analogWrite(motorPinFR, fullSpeed);
+      analogWrite(motorPinBR, fullSpeed);
+    }
   } else if (targetDetected && leftObstacle && !rightObstacle) {
     // left collision --> run only left motors
-    analogWrite(motorPinFL, 300);
-    analogWrite(motorPinBL, 300);
+    analogWrite(motorPinFL, turnSpeed);
+    analogWrite(motorPinBL, turnSpeed);
     analogWrite(motorPinFR, 0);  
     analogWrite(motorPinBR, 0);   
   } else if (targetDetected && !leftObstacle && rightObstacle) {
     // right collision --> run only right motors
     analogWrite(motorPinFL, 0); 
     analogWrite(motorPinBL, 0);  
-    analogWrite(motorPinFR, 300);
-    analogWrite(motorPinBR, 300);
+    analogWrite(motorPinFR, turnSpeed);
+    analogWrite(motorPinBR, turnSpeed);
   } else {
     // stop motors
     analogWrite(motorPinFL, 0); 
@@ -91,34 +108,6 @@ void loop() {
     analogWrite(motorPinFR, 0);  
     analogWrite(motorPinBR, 0);   
   }
-
-  /*
-  if (targetDetected && !leftObstacle && !rightObstacle) {
-    // no collision --> run all motors
-    analogWrite(motorPinFL, 300);
-    analogWrite(motorPinBL, 300);
-    analogWrite(motorPinFR, 300);
-    analogWrite(motorPinBR, 300);
-  } else if (targetDetected && leftObstacle && !rightObstacle) {
-    // left collision --> run only left motors
-    analogWrite(motorPinFL, 300);
-    analogWrite(motorPinBL, 300);
-    analogWrite(motorPinFR, 0);  
-    analogWrite(motorPinBR, 0);   
-  } else if (targetDetected && !leftObstacle && rightObstacle) {
-    // right collision --> run only right motors
-    analogWrite(motorPinFL, 0); 
-    analogWrite(motorPinBL, 0);  
-    analogWrite(motorPinFR, 300);
-    analogWrite(motorPinBR, 300);
-  } else {
-    // stop motors
-    analogWrite(motorPinFL, 0); 
-    analogWrite(motorPinBL, 0);  
-    analogWrite(motorPinFR, 0);  
-    analogWrite(motorPinBR, 0);   
-  }
-  */
 }
 
 long calculateDistance() {
